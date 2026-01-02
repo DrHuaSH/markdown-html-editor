@@ -1,0 +1,325 @@
+/* 简化的主样式文件 - 不依赖 Tailwind */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* AWS 主题颜色变量 */
+:root {
+  --aws-primary: #232F3E;
+  --aws-secondary: #FF9900;
+  --aws-light: #F8F9FA;
+  --aws-dark: #161E2D;
+  --aws-gray: #6B7280;
+  --aws-border: #E5E7EB;
+  --aws-success: #10B981;
+  --aws-warning: #F59E0B;
+  --aws-error: #EF4444;
+  --aws-info: #3B82F6;
+  --aws-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --aws-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--aws-light);
+  color: var(--aws-primary);
+  line-height: 1.5;
+}
+
+code {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+  font-size: 0.875em;
+  background-color: #f4f4f4;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+/* 基础布局类 */
+.min-h-screen { min-height: 100vh; }
+.bg-aws-light { background-color: var(--aws-light); }
+.p-4 { padding: 1rem; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.space-x-2 > * + * { margin-left: 0.5rem; }
+.space-x-4 > * + * { margin-left: 1rem; }
+.space-x-1 > * + * { margin-left: 0.25rem; }
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-2 { gap: 0.5rem; }
+.h-full { height: 100%; }
+.flex-1 { flex: 1; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+
+/* 文本样式 */
+.text-xl { font-size: 1.25rem; }
+.text-sm { font-size: 0.875rem; }
+.font-semibold { font-weight: 600; }
+.font-medium { font-weight: 500; }
+.font-bold { font-weight: 700; }
+.italic { font-style: italic; }
+.underline { text-decoration: underline; }
+.text-aws-primary { color: var(--aws-primary); }
+.text-white { color: white; }
+.text-gray-600 { color: #6b7280; }
+
+/* 背景和边框 */
+.bg-white { background-color: white; }
+.bg-gray-100 { background-color: #f3f4f6; }
+.bg-gray-50 { background-color: #f9fafb; }
+.bg-aws-secondary { background-color: var(--aws-secondary); }
+.border { border: 1px solid var(--aws-border); }
+.border-gray-200 { border-color: #e5e7eb; }
+.border-gray-300 { border-color: #d1d5db; }
+.rounded { border-radius: 0.25rem; }
+.rounded-md { border-radius: 0.375rem; }
+.rounded-lg { border-radius: 0.5rem; }
+
+/* 间距 */
+.w-8 { width: 2rem; }
+.h-8 { height: 2rem; }
+.px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+.py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+.py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+.p-1 { padding: 0.25rem; }
+.p-3 { padding: 0.75rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mt-3 { margin-top: 0.75rem; }
+
+/* 阴影和效果 */
+.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+.transition-all { transition: all 0.15s ease-in-out; }
+
+/* 悬停效果 */
+.hover\\:bg-gray-50:hover { background-color: #f9fafb; }
+
+/* 编辑器样式 */
+.editor-container {
+  min-height: 600px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.markdown-editor, .html-editor {
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  border: 2px solid var(--aws-border);
+  border-radius: 8px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 500px;
+  resize: vertical;
+  background-color: #fafafa;
+  transition: border-color 0.2s ease;
+}
+
+.markdown-editor:focus, .html-editor:focus {
+  outline: none;
+  border-color: var(--aws-secondary);
+  background-color: white;
+}
+
+.preview-panel {
+  padding: 16px;
+  border: 2px solid var(--aws-border);
+  border-radius: 8px;
+  background-color: white;
+  min-height: 500px;
+  overflow-y: auto;
+  font-family: inherit;
+  line-height: 1.6;
+  color: var(--aws-text);
+}
+
+.preview-panel[contenteditable="true"] {
+  cursor: text;
+}
+
+.preview-panel[contenteditable="true"]:focus {
+  outline: 2px solid var(--aws-secondary);
+  outline-offset: -2px;
+}
+
+/* Markdown 内容样式 */
+.markdown-content h1, .preview-panel h1 { 
+  font-size: 1.5rem; 
+  font-weight: bold; 
+  margin-bottom: 1rem; 
+  margin-top: 1.5rem;
+  color: var(--aws-primary);
+  border-bottom: 2px solid var(--aws-secondary);
+  padding-bottom: 0.3em;
+}
+
+.markdown-content h2, .preview-panel h2 { 
+  font-size: 1.25rem; 
+  font-weight: bold; 
+  margin-bottom: 0.75rem; 
+  margin-top: 1.25rem;
+  color: var(--aws-primary);
+  border-bottom: 1px solid var(--aws-border);
+  padding-bottom: 0.3em;
+}
+
+.markdown-content h3, .preview-panel h3 { 
+  font-size: 1.125rem; 
+  font-weight: bold; 
+  margin-bottom: 0.5rem; 
+  margin-top: 1rem;
+  color: var(--aws-primary);
+}
+
+.markdown-content p, .preview-panel p { 
+  margin-bottom: 0.75rem; 
+  line-height: 1.6; 
+}
+
+.markdown-content ul, .preview-panel ul { 
+  list-style-type: disc; 
+  list-style-position: inside; 
+  margin-bottom: 0.75rem; 
+}
+
+.markdown-content ol, .preview-panel ol { 
+  list-style-type: decimal; 
+  list-style-position: inside; 
+  margin-bottom: 0.75rem; 
+}
+
+.markdown-content li, .preview-panel li { 
+  margin-bottom: 0.25rem; 
+}
+
+.markdown-content code, .preview-panel code { 
+  background-color: #f3f4f6; 
+  padding: 0.125rem 0.25rem; 
+  border-radius: 0.25rem; 
+  font-size: 0.875rem; 
+  font-family: monospace; 
+}
+
+.markdown-content pre, .preview-panel pre { 
+  background-color: #f3f4f6; 
+  padding: 0.75rem; 
+  border-radius: 0.5rem; 
+  overflow-x: auto; 
+  margin-bottom: 0.75rem; 
+}
+
+.markdown-content blockquote, .preview-panel blockquote { 
+  border-left: 4px solid var(--aws-secondary); 
+  padding-left: 1rem; 
+  font-style: italic; 
+  margin-bottom: 0.75rem; 
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.markdown-content strong, .preview-panel strong { 
+  font-weight: bold; 
+}
+
+.markdown-content em, .preview-panel em { 
+  font-style: italic; 
+}
+
+.markdown-content a, .preview-panel a { 
+  color: #2563eb; 
+  text-decoration: underline; 
+}
+
+.markdown-content a:hover, .preview-panel a:hover { 
+  color: #1d4ed8; 
+}
+
+.markdown-content table, .preview-panel table { 
+  border-collapse: collapse; 
+  border: 1px solid var(--aws-border); 
+  margin-bottom: 0.75rem; 
+  width: 100%;
+}
+
+.markdown-content th, .markdown-content td,
+.preview-panel th, .preview-panel td { 
+  border: 1px solid var(--aws-border); 
+  padding: 0.75rem; 
+}
+
+.markdown-content th, .preview-panel th { 
+  background-color: #f3f4f6; 
+  font-weight: bold; 
+}
+
+/* 工具栏样式 */
+.toolbar {
+  background-color: white;
+  border-bottom: 1px solid var(--aws-border);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.aws-button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+  font-size: 0.875rem;
+}
+
+.aws-button-primary {
+  background-color: var(--aws-primary);
+  color: white;
+}
+
+.aws-button-primary:hover {
+  background-color: #1a252f;
+}
+
+.aws-button-secondary {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid var(--aws-border);
+}
+
+.aws-button-secondary:hover {
+  background-color: #e5e7eb;
+}
+
+/* 响应式设计 */
+@media (min-width: 1024px) {
+  .lg\\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .editor-container {
+    min-height: 400px;
+  }
+  
+  .markdown-editor, .html-editor, .preview-panel {
+    min-height: 300px;
+  }
+}

@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown-HTML 双向编辑器</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/marked@5.1.2/marked.min.js"></script>
+    <script src="https://unpkg.com/turndown@7.1.2/dist/turndown.js"></script>
+    <script src="https://unpkg.com/dompurify@3.0.5/dist/purify.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* AWS 风格样式 */
+        :root {
+            --aws-primary: #232F3E;
+            --aws-secondary: #FF9900;
+            --aws-light: #F2F3F3;
+        }
+        
+        .aws-button {
+            padding: 1rem 1.5rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .aws-button-primary {
+            background-color: var(--aws-primary);
+            color: white;
+        }
+        
+        .aws-button-primary:hover {
+            background-color: #1a252f;
+        }
+        
+        .aws-button-secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+        
+        .aws-button-secondary:hover {
+            background-color: #e5e7eb;
+        }
+        
+        .editor-container {
+            min-height: 600px;
+        }
+        
+        .markdown-editor {
+            width: 100%;
+            height: 100%;
+            padding: 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            min-height: 500px;
+            resize: vertical;
+            background-color: #fafafa;
+            transition: border-color 0.2s ease;
+        }
+        
+        .markdown-editor:focus {
+            outline: none;
+            border-color: var(--aws-secondary);
+            background-color: white;
+        }
+        
+        .html-editor {
+            width: 100%;
+            height: 100%;
+            padding: 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            background-color: #fafafa;
+            transition: border-color 0.2s ease;
+        }
+        
+        .html-editor:focus {
+            outline: none;
+            border-color: var(--aws-secondary);
+            background-color: white;
+        }
+        
+        .preview-panel {
+            /* 重要：不要覆盖内容的样式 */
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            color: inherit;
+            position: relative;
+        }
+        
+        .toolbar {
+            background-color: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .bg-aws-light {
+            background-color: var(--aws-light);
+        }
+        
+        .text-aws-primary {
+            color: var(--aws-primary);
+        }
+        
+        .bg-aws-secondary {
+            background-color: var(--aws-secondary);
+        }
+        
+        /* Markdown 渲染样式 */
+        .markdown-content h1 { 
+            font-size: 1.5rem; 
+            font-weight: bold; 
+            margin-bottom: 1rem; 
+            margin-top: 1.5rem; 
+        }
+        .markdown-content h2 { 
+            font-size: 1.25rem; 
+            font-weight: bold; 
+            margin-bottom: 0.75rem; 
+            margin-top: 1.25rem; 
+        }
+        .markdown-content h3 { 
+            font-size: 1.125rem; 
+            font-weight: bold; 
+            margin-bottom: 0.5rem; 
+            margin-top: 1rem; 
+        }
+        .markdown-content p { 
+            margin-bottom: 0.75rem; 
+            line-height: 1.6; 
+        }
+        .markdown-content ul { 
+            list-style-type: disc; 
+            list-style-position: inside; 
+            margin-bottom: 0.75rem; 
+        }
+        .markdown-content ol { 
+            list-style-type: decimal; 
+            list-style-position: inside; 
+            margin-bottom: 0.75rem; 
+        }
+        .markdown-content li { 
+            margin-bottom: 0.25rem; 
+        }
+        .markdown-content code { 
+            background-color: #f3f4f6; 
+            padding: 0.125rem 0.25rem; 
+            border-radius: 0.25rem; 
+            font-size: 0.875rem; 
+            font-family: monospace; 
+        }
+        .markdown-content pre { 
+            background-color: #f3f4f6; 
+            padding: 0.75rem; 
+            border-radius: 0.5rem; 
+            overflow-x: auto; 
+            margin-bottom: 0.75rem; 
+        }
+        .markdown-content blockquote { 
+            border-left: 4px solid #d1d5db; 
+            padding-left: 1rem; 
+            font-style: italic; 
+            margin-bottom: 0.75rem; 
+        }
+        .markdown-content strong { 
+            font-weight: bold; 
+        }
+        .markdown-content em { 
+            font-style: italic; 
+        }
+        .markdown-content a { 
+            color: #2563eb; 
+            text-decoration: underline; 
+        }
+        .markdown-content a:hover { 
+            color: #1d4ed8; 
+        }
+        .markdown-content table { 
+            border-collapse: collapse; 
+            border: 1px solid #d1d5db; 
+            margin-bottom: 0.75rem; 
+            width: 100%;
+        }
+        .markdown-content th, .markdown-content td { 
+            border: 1px solid #d1d5db; 
+            padding: 0.75rem; 
+        }
+        .markdown-content th { 
+            background-color: #f3f4f6; 
+            font-weight: bold; 
+        }
+        
+        /* 布局样式 */
+        .flex {
+            display: flex;
+        }
+        .items-center {
+            align-items: center;
+        }
+        .justify-between {
+            justify-content: space-between;
+        }
+        .space-x-1 > * + * {
+            margin-left: 0.25rem;
+        }
+        .space-x-2 > * + * {
+            margin-left: 0.5rem;
+        }
+        .space-x-4 > * + * {
+            margin-left: 1rem;
+        }
+        .grid {
+            display: grid;
+        }
+        .grid-cols-1 {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+        .gap-4 {
+            gap: 1rem;
+        }
+        .h-full {
+            height: 100%;
+        }
+        .w-8 {
+            width: 2rem;
+        }
+        .h-8 {
+            height: 2rem;
+        }
+        .rounded {
+            border-radius: 0.25rem;
+        }
+        .rounded-lg {
+            border-radius: 0.5rem;
+        }
+        .rounded-md {
+            border-radius: 0.375rem;
+        }
+        .px-3 {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+        .py-1\.5 {
+            padding-top: 0.375rem;
+            padding-bottom: 0.375rem;
+        }
+        .p-1 {
+            padding: 0.25rem;
+        }
+        .text-sm {
+            font-size: 0.875rem;
+        }
+        .text-lg {
+            font-size: 1.125rem;
+        }
+        .text-xl {
+            font-size: 1.25rem;
+        }
+        .font-medium {
+            font-weight: 500;
+        }
+        .font-semibold {
+            font-weight: 600;
+        }
+        .font-bold {
+            font-weight: 700;
+        }
+        .text-white {
+            color: white;
+        }
+        .text-gray-600 {
+            color: #4b5563;
+        }
+        .bg-white {
+            background-color: white;
+        }
+        .bg-gray-100 {
+            background-color: #f3f4f6;
+        }
+        .shadow-sm {
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .transition-all {
+            transition: all 0.15s ease-in-out;
+        }
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+        .min-h-screen {
+            min-height: 100vh;
+        }
+        .p-4 {
+            padding: 1rem;
+        }
+        
+        /* 可视化编辑器样式 */
+        .preview-panel[contenteditable="true"] {
+            cursor: text;
+        }
+        
+        .preview-panel[contenteditable="true"]:focus {
+            outline: 2px solid var(--aws-secondary);
+            outline-offset: -2px;
+        }
+        
+        .preview-panel[contenteditable="true"]:hover {
+            border-color: var(--aws-secondary);
+        }
+        
+        /* 拖拽滚动样式 */
+        .preview-panel {
+            scroll-behavior: smooth;
+        }
+        
+        .preview-panel::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        .preview-panel::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 6px;
+        }
+        
+        .preview-panel::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 6px;
+        }
+        
+        .preview-panel::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        .preview-panel::-webkit-scrollbar-corner {
+            background: #f1f1f1;
+        }
+        
+        /* 选择定位样式 */
+        .selection-center {
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .selection-center:focus {
+            outline: none;
+        }
+        
+        /* 编辑工具栏按钮悬停效果 */
+        .edit-toolbar button:hover {
+            background-color: #f3f4f6 !important;
+            border-color: var(--aws-secondary) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .edit-toolbar button:active {
+            background-color: #e5e7eb !important;
+            transform: translateY(0);
+        }
+        
+        /* 响应式设计 */
+        @media (min-width: 1024px) {
+            .lg\\:grid-cols-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+<body class="bg-aws-light min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useCallback, useEffect } = React;
+
+        // 转换引擎
+        const ConversionEngine = {
+            markdownToHtml: (markdown) => {
+                try {
+                    const html = marked.parse(markdown);
+                    // 不使用DOMPurify，保持原始HTML
+                    return html;
+                } catch (error) {
+                    console.error('Markdown转换错误:', error);
+                    return '<p>转换失败，请检查Markdown语法</p>';
+                }
+            },
+            
+            htmlToMarkdown: (html) => {
+                try {
+                    const turndownService = new TurndownService({
+                        headingStyle: 'atx',
+                        codeBlockStyle: 'fenced'
+                    });
+                    return turndownService.turndown(html);
+                } catch (error) {
+                    console.error('HTML转换错误:', error);
+                    return '转换失败，请检查HTML语法';
+                }
+            }
+        };
+
+        // 文件操作
+        const FileOperations = {
+            saveFile: (content, filename, type = 'text/plain') => {
+                const blob = new Blob([content], { type });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            },
+            
+            loadFile: (file) => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsText(file);
+                });
+            }
+        };
+
+        // 工具栏组件
+        const Toolbar = ({ mode, onModeChange, onSave, onLoad, onExport, markdownContent, htmlContent, setMarkdownContent, setHtmlContent }) => {
+            const fileInputRef = React.useRef();
+
+            const handleFileLoad = async (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    try {
+                        const content = await FileOperations.loadFile(file);
+                        onLoad(content, file.name.endsWith('.html') ? 'html' : 'markdown');
+                    } catch (error) {
+                        alert('文件加载失败: ' + error.message);
+                    }
+                }
+            };
+
+            return (
+                <div className="toolbar">
+                    <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 bg-aws-secondary rounded flex items-center justify-center">
+                                <span className="text-white font-bold text-sm">MD</span>
+                            </div>
+                            <h1 className="text-xl font-semibold text-aws-primary">
+                                Markdown-HTML编辑器
+                            </h1>
+                        </div>
+                        
+                        <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+                            <button
+                                onClick={() => onModeChange('markdown')}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                                    mode === 'markdown' 
+                                        ? 'bg-white text-aws-primary shadow-sm' 
+                                        : 'text-gray-600 hover:text-aws-primary'
+                                }`}
+                            >
+                                📝 Markdown
+                            </button>
+                            <button
+                                onClick={() => onModeChange('html')}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                                    mode === 'html' 
+                                        ? 'bg-white text-aws-primary shadow-sm' 
+                                        : 'text-gray-600 hover:text-aws-primary'
+                                }`}
+                            >
+                                🌐 HTML
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="aws-button aws-button-secondary"
+                        >
+                            📁 导入
+                        </button>
+                        
+                        <button
+                            onClick={onSave}
+                            className="aws-button aws-button-secondary"
+                        >
+                            💾 保存
+                        </button>
+                        
+                        <button
+                            onClick={onExport}
+                            className="aws-button aws-button-primary"
+                        >
+                            📤 导出
+                        </button>
+                        
+                        {/* 手动转换按钮 */}
+                        <button
+                            onClick={() => {
+                                if (mode === 'markdown') {
+                                    const html = ConversionEngine.markdownToHtml(markdownContent);
+                                    setHtmlContent(html);
+                                    alert('已将Markdown转换为HTML！切换到HTML模式查看。');
+                                } else {
+                                    const markdown = ConversionEngine.htmlToMarkdown(htmlContent);
+                                    setMarkdownContent(markdown);
+                                    alert('已将HTML转换为Markdown！切换到Markdown模式查看。');
+                                }
+                            }}
+                            className="aws-button aws-button-secondary"
+                            title={mode === 'markdown' ? '将当前Markdown转换为HTML' : '将当前HTML转换为Markdown'}
+                        >
+                            🔄 转换
+                        </button>
+                        
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".md,.html,.txt"
+                            onChange={handleFileLoad}
+                            style={{ display: 'none' }}
+                        />
+                    </div>
+                </div>
+            );
+        };
+
+        // Markdown编辑器组件
+        const MarkdownEditor = ({ content, onChange }) => {
+            const [previewContent, setPreviewContent] = useState('');
+
+            useEffect(() => {
+                const html = ConversionEngine.markdownToHtml(content);
+                setPreviewContent(html);
+            }, [content]);
+
+            return (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full" style={{ minHeight: '600px' }}>
+                    <div className="flex flex-col">
+                        <h3 className="text-xl font-semibold mb-3 text-aws-primary">Markdown 编辑</h3>
+                        <textarea
+                            className="markdown-editor flex-1"
+                            value={content}
+                            onChange={(e) => onChange(e.target.value)}
+                            placeholder="在这里输入Markdown内容..."
+                            style={{
+                                minHeight: '500px',
+                                fontSize: '14px',
+                                lineHeight: '1.5'
+                            }}
+                        />
+                    </div>
+                    <div className="flex flex-col">
+                        <h3 className="text-xl font-semibold mb-3 text-aws-primary">实时预览</h3>
+                        <div 
+                            className="markdown-content flex-1"
+                            dangerouslySetInnerHTML={{ __html: previewContent }}
+                            style={{
+                                minHeight: '500px',
+                                maxHeight: '700px',
+                                overflowY: 'auto',
+                                overflowX: 'auto',
+                                border: '2px solid #d1d5db',
+                                borderRadius: '8px',
+                                padding: '16px',
+                                backgroundColor: 'white'
+                            }}
+                        />
+                    </div>
+                </div>
+            );
+        };
+
+        // HTML编辑器组件
+        const HTMLEditor = ({ content, onChange }) => {
+            const [isUpdatingFromCode, setIsUpdatingFromCode] = useState(false);
+            const [isUpdatingFromPreview, setIsUpdatingFromPreview] = useState(false);
+            const [undoStack, setUndoStack] = useState([]);
+            const [redoStack, setRedoStack] = useState([]);
+            const [lastSavedContent, setLastSavedContent] = useState(content);
+            const [saveTimeout, setSaveTimeout] = useState(null);
+            const previewRef = React.useRef();
+            const codeRef = React.useRef();
+
+            // 保存状态到撤销栈 - 使用防抖机制
+            const saveToUndoStack = useCallback((newContent) => {
+                if (newContent !== lastSavedContent) {
+                    // 清除之前的定时器
+                    if (saveTimeout) {
+                        clearTimeout(saveTimeout);
+                    }
+                    
+                    // 设置新的定时器，延迟保存
+                    const timeout = setTimeout(() => {
+                        setUndoStack(prev => [...prev.slice(-19), lastSavedContent]); // 保持最多20个状态
+                        setRedoStack([]); // 清空重做栈
+                        setLastSavedContent(newContent);
+                    }, 500); // 500ms 防抖延迟
+                    
+                    setSaveTimeout(timeout);
+                }
+            }, [lastSavedContent, saveTimeout]);
+
+            // 撤销功能
+            const handleUndo = useCallback(() => {
+                if (undoStack.length > 0) {
+                    const previousContent = undoStack[undoStack.length - 1];
+                    setRedoStack(prev => [content, ...prev.slice(0, 19)]); // 保持最多20个状态
+                    setUndoStack(prev => prev.slice(0, -1));
+                    setLastSavedContent(previousContent);
+                    onChange(previousContent);
+                }
+            }, [undoStack, content, onChange]);
+
+            // 重做功能
+            const handleRedo = useCallback(() => {
+                if (redoStack.length > 0) {
+                    const nextContent = redoStack[0];
+                    setUndoStack(prev => [...prev, content]);
+                    setRedoStack(prev => prev.slice(1));
+                    setLastSavedContent(nextContent);
+                    onChange(nextContent);
+                }
+            }, [redoStack, content, onChange]);
+            // 从代码更新预览 - 保持滚动位置
+            useEffect(() => {
+                if (!isUpdatingFromPreview && previewRef.current) {
+                    setIsUpdatingFromCode(true);
+                    
+                    // 保存当前滚动位置和选择状态
+                    const scrollTop = previewRef.current.scrollTop;
+                    const scrollLeft = previewRef.current.scrollLeft;
+                    const selection = window.getSelection();
+                    let selectionRange = null;
+                    
+                    // 保存选择范围
+                    if (selection.rangeCount > 0) {
+                        try {
+                            selectionRange = selection.getRangeAt(0).cloneRange();
+                        } catch (e) {
+                            // 忽略选择保存错误
+                        }
+                    }
+                    
+                    // 更新内容
+                    previewRef.current.innerHTML = content;
+                    
+                    // 使用 requestAnimationFrame 确保DOM更新完成后再恢复位置
+                    requestAnimationFrame(() => {
+                        if (previewRef.current) {
+                            // 恢复滚动位置
+                            previewRef.current.scrollTop = scrollTop;
+                            previewRef.current.scrollLeft = scrollLeft;
+                            
+                            // 尝试恢复选择状态
+                            if (selectionRange) {
+                                try {
+                                    selection.removeAllRanges();
+                                    selection.addRange(selectionRange);
+                                } catch (e) {
+                                    // 忽略选择恢复错误
+                                }
+                            }
+                        }
+                        
+                        // 延迟重置更新标志
+                        setTimeout(() => setIsUpdatingFromCode(false), 50);
+                    });
+                }
+            }, [content, isUpdatingFromPreview]);
+
+            // 处理预览区域的编辑
+            const handlePreviewEdit = useCallback(() => {
+                if (!isUpdatingFromCode && previewRef.current) {
+                    setIsUpdatingFromPreview(true);
+                    const newHtml = previewRef.current.innerHTML;
+                    
+                    // 只有当内容真正改变时才保存到撤销栈
+                    if (newHtml !== content) {
+                        saveToUndoStack(content);
+                        onChange(newHtml);
+                    }
+                    
+                    setTimeout(() => setIsUpdatingFromPreview(false), 50);
+                }
+            }, [onChange, isUpdatingFromCode, content, saveToUndoStack]);
+
+            // 以下函数已禁用 - 不再进行选择内容的自动查询
+            // 在代码编辑器中居中显示文本 - 已禁用
+            // const centerInCodeEditor = useCallback((text) => {
+            //     // 功能已禁用
+            // }, []);
+
+            // 清除代码定位 - 已禁用
+            // const clearCodeHighlight = useCallback(() => {
+            //     // 功能已禁用
+            // }, []);
+
+            // 处理选择文本定位 - 已禁用自动查询功能
+            const handleSelectionChange = useCallback(() => {
+                // 不执行任何操作，用户选择内容时不进行自动查询
+                return;
+            }, []);
+
+            // 处理预览区域点击 - 已禁用选择查询功能
+            const handlePreviewClick = useCallback((e) => {
+                // 不执行任何操作，用户点击时不进行选择状态处理
+                return;
+            }, []);
+
+            // 处理预览区域的键盘事件
+            const handlePreviewKeyDown = useCallback((e) => {
+                // 处理撤销/重做快捷键
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === 'z' && !e.shiftKey) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleUndo();
+                        return false;
+                    }
+                    if ((e.key === 'y') || (e.key === 'z' && e.shiftKey)) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleRedo();
+                        return false;
+                    }
+                    // 允许其他快捷键
+                    if (['b', 'i', 'u', 'c', 'v', 'x', 'a'].includes(e.key.toLowerCase())) {
+                        return true;
+                    }
+                }
+                
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    document.execCommand('insertText', false, '    ');
+                    return false;
+                }
+                
+                return true;
+            }, [handleUndo, handleRedo]);
+
+            // 处理代码编辑器的变化
+            const handleCodeChange = useCallback((e) => {
+                const newContent = e.target.value;
+                // 只有当内容真正改变时才保存到撤销栈
+                if (newContent !== content) {
+                    saveToUndoStack(content);
+                    onChange(newContent);
+                }
+            }, [content, onChange, saveToUndoStack]);
+
+            // 处理预览区域的粘贴事件
+            const handlePreviewPaste = useCallback((e) => {
+                e.preventDefault();
+                const text = e.clipboardData.getData('text/plain');
+                document.execCommand('insertText', false, text);
+            }, []);
+
+            // 清理定时器
+            useEffect(() => {
+                return () => {
+                    if (saveTimeout) {
+                        clearTimeout(saveTimeout);
+                    }
+                };
+            }, [saveTimeout]);
+
+            // 全局键盘事件监听器 - 处理代码编辑器的撤销重做
+            useEffect(() => {
+                const handleGlobalKeyDown = (e) => {
+                    // 只在代码编辑器获得焦点时处理
+                    if (document.activeElement === codeRef.current) {
+                        if (e.ctrlKey || e.metaKey) {
+                            if (e.key === 'z' && !e.shiftKey) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleUndo();
+                                return false;
+                            }
+                            if ((e.key === 'y') || (e.key === 'z' && e.shiftKey)) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleRedo();
+                                return false;
+                            }
+                        }
+                    }
+                };
+
+                document.addEventListener('keydown', handleGlobalKeyDown, true);
+                return () => {
+                    document.removeEventListener('keydown', handleGlobalKeyDown, true);
+                };
+            }, [handleUndo, handleRedo]);
+
+            // 监听选择变化 - 已禁用
+            // useEffect(() => {
+            //     document.addEventListener('selectionchange', handleSelectionChange);
+            //     return () => {
+            //         document.removeEventListener('selectionchange', handleSelectionChange);
+            //     };
+            // }, [handleSelectionChange]);
+
+            // 添加拖拽滚动功能
+            useEffect(() => {
+                const previewElement = previewRef.current;
+                if (!previewElement) return;
+
+                let isMouseDown = false;
+                let startX, startY, scrollLeft, scrollTop;
+
+                const handleMouseDown = (e) => {
+                    // 只在按住Shift键时启用拖拽滚动
+                    if (!e.shiftKey) return;
+                    
+                    isMouseDown = true;
+                    startX = e.pageX - previewElement.offsetLeft;
+                    startY = e.pageY - previewElement.offsetTop;
+                    scrollLeft = previewElement.scrollLeft;
+                    scrollTop = previewElement.scrollTop;
+                    previewElement.style.cursor = 'grabbing';
+                    e.preventDefault();
+                };
+
+                const handleMouseLeave = () => {
+                    isMouseDown = false;
+                    previewElement.style.cursor = 'text';
+                };
+
+                const handleMouseUp = () => {
+                    isMouseDown = false;
+                    previewElement.style.cursor = 'text';
+                };
+
+                const handleMouseMove = (e) => {
+                    if (!isMouseDown || !e.shiftKey) return;
+                    e.preventDefault();
+                    
+                    const x = e.pageX - previewElement.offsetLeft;
+                    const y = e.pageY - previewElement.offsetTop;
+                    const walkX = (x - startX) * 2;
+                    const walkY = (y - startY) * 2;
+                    
+                    previewElement.scrollLeft = scrollLeft - walkX;
+                    previewElement.scrollTop = scrollTop - walkY;
+                };
+
+                previewElement.addEventListener('mousedown', handleMouseDown);
+                previewElement.addEventListener('mouseleave', handleMouseLeave);
+                previewElement.addEventListener('mouseup', handleMouseUp);
+                previewElement.addEventListener('mousemove', handleMouseMove);
+
+                return () => {
+                    previewElement.removeEventListener('mousedown', handleMouseDown);
+                    previewElement.removeEventListener('mouseleave', handleMouseLeave);
+                    previewElement.removeEventListener('mouseup', handleMouseUp);
+                    previewElement.removeEventListener('mousemove', handleMouseMove);
+                };
+            }, []);
+
+            return (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full" style={{ minHeight: '600px' }}>
+                    <div className="flex flex-col">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-xl font-semibold text-aws-primary">HTML 编辑</h3>
+                            <div className="flex items-center space-x-2">
+                                <span className="text-sm text-gray-500">
+                                    撤销: {undoStack.length} | 重做: {redoStack.length}
+                                </span>
+                            </div>
+                        </div>
+                        <textarea
+                            ref={codeRef}
+                            className="html-editor flex-1"
+                            value={content}
+                            onChange={handleCodeChange}
+                            placeholder="在这里输入HTML内容..."
+                            style={{
+                                minHeight: '500px',
+                                fontSize: '14px',
+                                lineHeight: '1.5',
+                                fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace'
+                            }}
+                        />
+                    </div>
+                    <div className="flex flex-col">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-xl font-semibold text-aws-primary">可视化编辑</h3>
+                            <div className="flex items-center space-x-2">
+                                <span className="text-sm text-gray-600">💡 可直接编辑</span>
+                                <span className="text-sm text-gray-600">🖱️ Shift+拖拽滚动</span>
+                            </div>
+                        </div>
+                        <div 
+                            ref={previewRef}
+                            className="preview-panel flex-1"
+                            contentEditable={true}
+                            suppressContentEditableWarning={true}
+                            onInput={handlePreviewEdit}
+                            onKeyDown={handlePreviewKeyDown}
+                            onPaste={handlePreviewPaste}
+                            onClick={handlePreviewClick}
+                            style={{ 
+                                minHeight: '500px',
+                                maxHeight: '700px',
+                                overflowY: 'auto',
+                                overflowX: 'auto',
+                                outline: 'none',
+                                cursor: 'text',
+                                resize: 'both',
+                                border: '2px solid #d1d5db',
+                                borderRadius: '8px',
+                                padding: '16px',
+                                backgroundColor: 'white'
+                            }}
+                        />
+                        
+                        {/* 编辑工具栏 */}
+                        <div className="edit-toolbar" style={{
+                            marginTop: '12px',
+                            padding: '12px',
+                            backgroundColor: '#f9f9f9',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            gap: '8px',
+                            flexWrap: 'wrap',
+                            border: '1px solid #e5e7eb'
+                        }}>
+                            <button
+                                onClick={() => document.execCommand('bold')}
+                                style={{
+                                    padding: '6px 12px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold'
+                                }}
+                                title="加粗 (Ctrl+B)"
+                            >
+                                <strong>B</strong>
+                            </button>
+                            <button
+                                onClick={() => document.execCommand('italic')}
+                                style={{
+                                    padding: '6px 12px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer'
+                                }}
+                                title="斜体 (Ctrl+I)"
+                            >
+                                <em>I</em>
+                            </button>
+                            <button
+                                onClick={() => document.execCommand('underline')}
+                                style={{
+                                    padding: '6px 12px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer'
+                                }}
+                                title="下划线 (Ctrl+U)"
+                            >
+                                <u>U</u>
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const url = prompt('请输入链接地址:');
+                                    if (url) document.execCommand('createLink', false, url);
+                                }}
+                                style={{
+                                    padding: '6px 12px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer'
+                                }}
+                                title="插入链接"
+                            >
+                                🔗 链接
+                            </button>
+                            <button
+                                onClick={() => document.execCommand('formatBlock', false, 'h1')}
+                                style={{
+                                    padding: '6px 12px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer'
+                                }}
+                                title="标题1"
+                            >
+                                H1
+                            </button>
+                            <button
+                                onClick={() => document.execCommand('formatBlock', false, 'h2')}
+                                style={{
+                                    padding: '6px 12px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer'
+                                }}
+                                title="标题2"
+                            >
+                                H2
+                            </button>
+                            <button
+                                onClick={() => document.execCommand('insertUnorderedList')}
+                                style={{
+                                    padding: '6px 12px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer'
+                                }}
+                                title="无序列表"
+                            >
+                                • 列表
+                            </button>
+                            <button
+                                onClick={() => document.execCommand('insertOrderedList')}
+                                style={{
+                                    padding: '6px 12px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer'
+                                }}
+                                title="有序列表"
+                            >
+                                1. 列表
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const color = prompt('请输入颜色 (如: red, #ff0000):');
+                                    if (color) document.execCommand('foreColor', false, color);
+                                }}
+                                style={{
+                                    padding: '6px 12px',
+                                    fontSize: '14px',
+                                    backgroundColor: 'white',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer'
+                                }}
+                                title="文字颜色"
+                            >
+                                🎨 颜色
+                            </button>
+                            <button
+                                onClick={handleUndo}
+                                disabled={undoStack.length === 0}
+                                style={{
+                                    padding: '6px 12px',
+                                    fontSize: '14px',
+                                    backgroundColor: undoStack.length === 0 ? '#f5f5f5' : 'white',
+                                    color: undoStack.length === 0 ? '#999' : '#333',
+                                    border: undoStack.length === 0 ? '1px solid #e5e7eb' : '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    cursor: undoStack.length === 0 ? 'not-allowed' : 'pointer',
+                                    opacity: undoStack.length === 0 ? 0.5 : 1,
+                                    transition: 'all 0.2s ease'
+                                }}
+                                title={`撤销 (Ctrl+Z) - ${undoStack.length} 个可撤销操作`}
+                            >
+                                ↶ 撤销 ({undoStack.length})
+                            </button>
+                            <button
+                                onClick={handleRedo}
+                                disabled={redoStack.length === 0}
+                                style={{
+                                    padding: '6px 12px',
+                                    fontSize: '14px',
+                                    backgroundColor: redoStack.length === 0 ? '#f5f5f5' : 'white',
+                                    color: redoStack.length === 0 ? '#999' : '#333',
+                                    border: redoStack.length === 0 ? '1px solid #e5e7eb' : '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    cursor: redoStack.length === 0 ? 'not-allowed' : 'pointer',
+                                    opacity: redoStack.length === 0 ? 0.5 : 1,
+                                    transition: 'all 0.2s ease'
+                                }}
+                                title={`重做 (Ctrl+Y) - ${redoStack.length} 个可重做操作`}
+                            >
+                                ↷ 重做 ({redoStack.length})
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 主应用组件
+        const App = () => {
+            const [mode, setMode] = useState('markdown');
+            const [markdownContent, setMarkdownContent] = useState(`# 欢迎使用 Markdown-HTML 双向编辑器
+
+这是一个功能强大的在线编辑器，支持：
+
+## 主要功能
+
+- **Markdown编辑**: 支持语法高亮和实时预览
+- **HTML编辑**: 可视化HTML编辑和预览
+- **双向转换**: Markdown ↔ HTML 无缝转换
+- **文件操作**: 导入导出 .md 和 .html 文件
+
+## 使用方法
+
+1. 点击上方的 **📝 Markdown** 或 **🌐 HTML** 切换编辑模式
+2. 在左侧编辑区域输入内容，右侧会实时显示预览
+3. 使用 **📁 导入** 按钮加载本地文件
+4. 使用 **💾 保存** 或 **📤 导出** 按钮保存您的工作
+
+## 示例内容
+
+### 代码块
+\`\`\`javascript
+function hello() {
+    console.log("Hello, World!");
+}
+\`\`\`
+
+### 表格
+| 功能 | 支持 |
+|------|------|
+| Markdown | ✅ |
+| HTML | ✅ |
+| 实时预览 | ✅ |
+
+### 列表
+- 项目 1
+- 项目 2
+  - 子项目 2.1
+  - 子项目 2.2
+
+**祝您使用愉快！**`);
+            
+            const [htmlContent, setHtmlContent] = useState('');
+
+            // 初始化HTML内容 - 丰富多彩的演示内容
+            useEffect(() => {
+                const demoHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .demo-container {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .title {
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            font-style: italic;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .feature-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .feature-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #FFD700;
+        }
+        .demo-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,107,107,0.6);
+        }
+        .btn-secondary {
+            background: linear-gradient(45deg, #4ECDC4, #44A08D);
+            color: white;
+            box-shadow: 0 4px 15px rgba(78,205,196,0.4);
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(78,205,196,0.6);
+        }
+        .btn-accent {
+            background: linear-gradient(45deg, #A8E6CF, #7FCDCD);
+            color: #2c3e50;
+            box-shadow: 0 4px 15px rgba(168,230,207,0.4);
+        }
+        .demo-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .demo-table th {
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+        .demo-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .demo-table tr:nth-child(even) {
+            background: rgba(255,255,255,0.05);
+        }
+        .demo-table tr:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .status-active {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        .status-pending {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,165,0,0.2));
+            border-left: 5px solid #FFD700;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+            backdrop-filter: blur(5px);
+        }
+        .text-effects {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .rainbow-text {
+            background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.5em;
+            font-weight: bold;
+            animation: rainbow 3s ease-in-out infinite;
+        }
+        @keyframes rainbow {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(180deg); }
+        }
+        .glow-text {
+            color: #fff;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="header">
+            <h1 class="title">🎨 HTML 可视化编辑器</h1>
+            <p class="subtitle">体验丰富多彩的所见即所得编辑功能</p>
+        </div>
+
+        <div class="highlight-box">
+            <h3>✨ 欢迎体验！</h3>
+            <p>这是一个功能完整的HTML编辑器，支持<strong>实时编辑</strong>、<em>样式保持</em>和<u>格式化工具</u>。你可以直接点击任何内容进行编辑，所有样式都会完美保持！</p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="feature-icon">🎨</span>
+                <div class="feature-title">丰富样式</div>
+                <p>支持渐变背景、阴影效果、动画和各种CSS3特性</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">✏️</span>
+                <div class="feature-title">实时编辑</div>
+                <p>直接在预览区域编辑，立即看到效果，无需刷新</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🛠️</span>
+                <div class="feature-title">工具栏</div>
+                <p>快速格式化工具，包括粗体、斜体、颜色等</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🔄</span>
+                <div class="feature-title">代码同步</div>
+                <p>可视化编辑与HTML代码实时双向同步</p>
+            </div>
+        </div>
+
+        <div class="text-effects">
+            <div class="rainbow-text">🌈 彩虹渐变文字效果</div>
+            <br>
+            <div class="glow-text">✨ 发光文字效果</div>
+        </div>
+
+        <div class="demo-buttons">
+            <button class="btn btn-primary">主要按钮</button>
+            <button class="btn btn-secondary">次要按钮</button>
+            <button class="btn btn-accent">强调按钮</button>
+        </div>
+
+        <table class="demo-table">
+            <thead>
+                <tr>
+                    <th>功能特性</th>
+                    <th>支持状态</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>🎨 CSS样式</td>
+                    <td><span class="status-badge status-active">✅ 完全支持</span></td>
+                    <td>渐变、阴影、动画等</td>
+                </tr>
+                <tr>
+                    <td>🖱️ 直接编辑</td>
+                    <td><span class="status-badge status-active">✅ 完全支持</span></td>
+                    <td>点击即可编辑内容</td>
+                </tr>
+                <tr>
+                    <td>🔧 工具栏</td>
+                    <td><span class="status-badge status-active">✅ 完全支持</span></td>
+                    <td>快速格式化工具</td>
+                </tr>
+                <tr>
+                    <td>📱 响应式</td>
+                    <td><span class="status-badge status-pending">🔄 开发中</span></td>
+                    <td>移动端适配优化</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="highlight-box">
+            <h3>🚀 开始编辑</h3>
+            <p>点击页面上的任何文字开始编辑，使用下方的工具栏快速格式化文本。你会发现所有的颜色、背景、动画效果都完美保持！</p>
+            <p><strong>提示：</strong>试试选中文字后点击工具栏的颜色按钮，或者直接输入新内容。</p>
+        </div>
+    </div>
+</body>
+</html>`;
+                setHtmlContent(demoHtml);
+            }, []);
+
+            const handleModeChange = useCallback((newMode) => {
+                // 简单切换模式，不进行内容转换
+                setMode(newMode);
+            }, []);
+
+            const handleSave = useCallback(() => {
+                const content = mode === 'markdown' ? markdownContent : htmlContent;
+                const filename = mode === 'markdown' ? 'document.md' : 'document.html';
+                const type = mode === 'markdown' ? 'text/markdown' : 'text/html';
+                
+                FileOperations.saveFile(content, filename, type);
+            }, [mode, markdownContent, htmlContent]);
+
+            const handleLoad = useCallback((content, fileMode) => {
+                if (fileMode === 'html') {
+                    setHtmlContent(content);
+                    setMode('html');
+                } else {
+                    setMarkdownContent(content);
+                    setMode('markdown');
+                }
+            }, []);
+
+            const handleExport = useCallback(() => {
+                if (mode === 'markdown') {
+                    // 导出HTML版本
+                    const html = ConversionEngine.markdownToHtml(markdownContent);
+                    FileOperations.saveFile(html, 'document.html', 'text/html');
+                } else {
+                    // 导出Markdown版本
+                    const markdown = ConversionEngine.htmlToMarkdown(htmlContent);
+                    FileOperations.saveFile(markdown, 'document.md', 'text/markdown');
+                }
+            }, [mode, markdownContent, htmlContent]);
+
+            return (
+                <div className="min-h-screen bg-aws-light">
+                    <Toolbar 
+                        mode={mode}
+                        onModeChange={handleModeChange}
+                        onSave={handleSave}
+                        onLoad={handleLoad}
+                        onExport={handleExport}
+                        markdownContent={markdownContent}
+                        htmlContent={htmlContent}
+                        setMarkdownContent={setMarkdownContent}
+                        setHtmlContent={setHtmlContent}
+                    />
+                    
+                    <div className="p-6">
+                        <div className="editor-container">
+                            {mode === 'markdown' ? (
+                                <MarkdownEditor 
+                                    content={markdownContent}
+                                    onChange={setMarkdownContent}
+                                />
+                            ) : (
+                                <HTMLEditor 
+                                    content={htmlContent}
+                                    onChange={setHtmlContent}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 渲染应用
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
