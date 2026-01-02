@@ -2,6 +2,7 @@
   "name": "markdown-html-editor",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://DrHuaSH.github.io/markdown-html-editor",
   "dependencies": {
     "@types/node": "^16.18.68",
     "@types/react": "^18.2.42",
@@ -19,13 +20,16 @@
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
     "@types/marked": "^5.0.2",
-    "@types/turndown": "^5.0.4"
+    "@types/turndown": "^5.0.4",
+    "gh-pages": "^6.3.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
