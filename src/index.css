@@ -144,11 +144,42 @@ code {
 
 .preview-panel[contenteditable="true"] {
   cursor: text;
+  transition: all 0.2s ease;
 }
 
 .preview-panel[contenteditable="true"]:focus {
   outline: 2px solid var(--aws-secondary);
   outline-offset: -2px;
+  box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.1);
+}
+
+/* 同步状态指示器 */
+.sync-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 8px;
+  background-color: var(--aws-success);
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sync-indicator.active {
+  opacity: 1;
+}
+
+/* 代码编辑器实时同步样式 */
+.html-editor.syncing {
+  border-color: var(--aws-info);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.preview-panel.syncing {
+  border-color: var(--aws-info);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
 /* Markdown 内容样式 */

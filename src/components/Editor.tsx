@@ -2,6 +2,18 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { convertMarkdownToHtml } from '../utils/conversion';
 
+// 防抖函数
+const useDebounce = (callback: Function, delay: number) => {
+  const timeoutRef = useRef<NodeJS.Timeout>();
+  
+  return useCallback((...args: any[]) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => callback(...args), delay);
+  }, [callback, delay]);
+};
+
 // 光标位置保存和恢复工具函数
 const saveCursorPosition = (element: HTMLElement) => {
   const selection = window.getSelection();
@@ -72,10 +84,31 @@ const Editor: React.FC<EditorProps> = ({
   onHtmlChange,
 }) => {
   const [previewContent, setPreviewContent] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const codeRef = useRef<HTMLTextAreaElement>(null);
   const cursorPositionRef = useRef<{ start: number; end: number } | null>(null);
   const isUpdatingFromCodeRef = useRef(false);
+  const isUpdatingFromPreviewRef = useRef(false);
+  const syncTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // 防抖的预览更新函数
+  const debouncedPreviewUpdate = useDebounce((content: string) => {
+    if (previewRef.current && !isUpdatingFromPreviewRef.current) {
+      setIsSyncing(true);
+      previewRef.current.innerHTML = content;
+      
+      // 清除之前的超时
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+      
+      // 设置同步完成状态
+      syncTimeoutRef.current = setTimeout(() => {
+        setIsSyncing(false);
+      }, 500);
+    }
+  }, 100);
 
   // 初始化 HTML 内容
   useEffect(() => {
@@ -111,29 +144,39 @@ const Editor: React.FC<EditorProps> = ({
 
   // HTML 模式：同步预览和代码，保持光标位置
   useEffect(() => {
-    if (mode === 'html' && previewRef.current && !isUpdatingFromCodeRef.current) {
-      // 保存当前光标位置
+    if (mode === 'html' && previewRef.current) {
+      // 如果更新来自代码编辑器，直接更新预览内容
+      if (isUpdatingFromCodeRef.current) {
+        previewRef.current.innerHTML = htmlContent;
+        isUpdatingFromCodeRef.current = false;
+        return;
+      }
+      
+      // 如果更新来自可视化编辑器，保持光标位置
       const savedPosition = saveCursorPosition(previewRef.current);
       
-      // 更新内容
-      previewRef.current.innerHTML = htmlContent;
-      
-      // 恢复光标位置
-      if (savedPosition) {
-        // 使用 setTimeout 确保 DOM 更新完成后再恢复光标
-        setTimeout(() => {
-          if (previewRef.current) {
-            restoreCursorPosition(previewRef.current, savedPosition);
-          }
-        }, 0);
+      // 只有当内容真正不同时才更新
+      if (previewRef.current.innerHTML !== htmlContent) {
+        previewRef.current.innerHTML = htmlContent;
+        
+        // 恢复光标位置
+        if (savedPosition) {
+          setTimeout(() => {
+            if (previewRef.current) {
+              restoreCursorPosition(previewRef.current, savedPosition);
+            }
+          }, 0);
+        }
       }
     }
-    isUpdatingFromCodeRef.current = false;
   }, [htmlContent, mode]);
 
   // 处理 HTML 预览编辑
   const handleHtmlPreviewEdit = useCallback(() => {
     if (mode === 'html' && previewRef.current) {
+      // 标记更新来自预览编辑器
+      isUpdatingFromPreviewRef.current = true;
+      
       // 保存光标位置
       cursorPositionRef.current = saveCursorPosition(previewRef.current);
       
@@ -141,6 +184,11 @@ const Editor: React.FC<EditorProps> = ({
       if (newHtml !== htmlContent) {
         onHtmlChange(newHtml);
       }
+      
+      // 重置标记
+      setTimeout(() => {
+        isUpdatingFromPreviewRef.current = false;
+      }, 50);
     }
   }, [mode, htmlContent, onHtmlChange]);
 
@@ -153,8 +201,16 @@ const Editor: React.FC<EditorProps> = ({
       // 标记这次更新来自代码编辑器
       isUpdatingFromCodeRef.current = true;
       onHtmlChange(newContent);
+      
+      // 使用防抖更新预览
+      debouncedPreviewUpdate(newContent);
+      
+      // 重置标记
+      setTimeout(() => {
+        isUpdatingFromCodeRef.current = false;
+      }, 150);
     }
-  }, [mode, onMarkdownChange, onHtmlChange]);
+  }, [mode, onMarkdownChange, onHtmlChange, debouncedPreviewUpdate]);
 
   // 格式化工具函数
   const formatText = useCallback((command: string, value?: string) => {
@@ -206,27 +262,37 @@ const Editor: React.FC<EditorProps> = ({
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full" style={{ minHeight: '600px' }}>
       <div className="flex flex-col">
         <h3 className="text-xl font-semibold mb-3 text-aws-primary">HTML 编辑</h3>
-        <textarea
-          ref={codeRef}
-          className="html-editor flex-1"
-          value={htmlContent}
-          onChange={handleCodeChange}
-          placeholder="在这里输入HTML内容..."
-        />
+        <div style={{ position: 'relative' }}>
+          <textarea
+            ref={codeRef}
+            className={`html-editor flex-1 ${isSyncing ? 'syncing' : ''}`}
+            value={htmlContent}
+            onChange={handleCodeChange}
+            placeholder="在这里输入HTML内容..."
+          />
+          <div className={`sync-indicator ${isSyncing ? 'active' : ''}`}>
+            ⚡ 同步中...
+          </div>
+        </div>
       </div>
       <div className="flex flex-col">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xl font-semibold text-aws-primary">可视化编辑</h3>
           <span className="text-sm text-gray-600">💡 可直接编辑</span>
         </div>
-        <div 
-          ref={previewRef}
-          className="preview-panel flex-1"
-          contentEditable={true}
-          suppressContentEditableWarning={true}
-          onInput={handleHtmlPreviewEdit}
-          style={{ cursor: 'text' }}
-        />
+        <div style={{ position: 'relative' }}>
+          <div 
+            ref={previewRef}
+            className={`preview-panel flex-1 ${isSyncing ? 'syncing' : ''}`}
+            contentEditable={true}
+            suppressContentEditableWarning={true}
+            onInput={handleHtmlPreviewEdit}
+            style={{ cursor: 'text' }}
+          />
+          <div className={`sync-indicator ${isSyncing ? 'active' : ''}`}>
+            ✅ 已同步
+          </div>
+        </div>
         
         {/* HTML 编辑工具栏 */}
         <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
