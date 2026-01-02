@@ -3,6 +3,7 @@ import React from 'react';
 import { EditorProvider, useEditor } from './contexts/EditorContext';
 import Toolbar from './components/Toolbar';
 import Editor from './components/Editor';
+import Footer from './components/Footer';
 
 const AppContent: React.FC = () => {
   const {
@@ -33,6 +34,7 @@ const AppContent: React.FC = () => {
           onHtmlChange={setHtmlContent}
         />
       </div>
+      <Footer />
     </div>
   );
 };

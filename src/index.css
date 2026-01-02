@@ -333,7 +333,197 @@ code {
   background-color: #e5e7eb;
 }
 
+/* 页脚样式 */
+.footer-container {
+  background: linear-gradient(135deg, var(--aws-primary) 0%, var(--aws-dark) 100%);
+  color: white;
+  margin-top: 2rem;
+  padding: 2rem 0 1rem;
+  border-top: 3px solid var(--aws-secondary);
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.footer-main {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.footer-section {
+  padding: 0 1rem;
+}
+
+.footer-title {
+  color: var(--aws-secondary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  border-bottom: 2px solid var(--aws-secondary);
+  padding-bottom: 0.5rem;
+}
+
+.footer-description {
+  color: #e5e7eb;
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer-link {
+  color: #d1d5db;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.footer-link:hover {
+  color: var(--aws-secondary);
+  text-decoration: underline;
+}
+
+.footer-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tech-badge {
+  background: rgba(255, 153, 0, 0.2);
+  color: var(--aws-secondary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid var(--aws-secondary);
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-copyright {
+  flex: 1;
+}
+
+.footer-copyright p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.footer-license {
+  color: #d1d5db;
+  font-size: 0.8rem;
+}
+
+.license-link {
+  color: var(--aws-secondary);
+  text-decoration: none;
+}
+
+.license-link:hover {
+  text-decoration: underline;
+}
+
+.footer-meta {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.version-info {
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
+
+.footer-badges {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-production {
+  background: var(--aws-success);
+  color: white;
+}
+
+.status-opensource {
+  background: #3b82f6;
+  color: white;
+}
+
+.footer-disclaimer {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 0.5rem;
+  border-left: 4px solid var(--aws-secondary);
+}
+
+.footer-disclaimer p {
+  margin: 0.5rem 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #d1d5db;
+}
+
+.footer-disclaimer strong {
+  color: var(--aws-secondary);
+}
+
 /* 响应式设计 */
+@media (max-width: 768px) {
+  .footer-main {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .footer-meta {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .footer-badges {
+    justify-content: center;
+  }
+  
+  .footer-tech {
+    justify-content: center;
+  }
+}
 @media (min-width: 1024px) {
   .lg\\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));

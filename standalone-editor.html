@@ -1499,6 +1499,206 @@ function hello() {
                             )}
                         </div>
                     </div>
+                    
+                    {/* 版权信息 */}
+                    <footer style={{
+                        background: 'linear-gradient(135deg, #232F3E 0%, #161E2D 100%)',
+                        color: 'white',
+                        marginTop: '2rem',
+                        padding: '2rem 0 1rem',
+                        borderTop: '3px solid #FF9900'
+                    }}>
+                        <div style={{
+                            maxWidth: '1200px',
+                            margin: '0 auto',
+                            padding: '0 1rem'
+                        }}>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                                gap: '2rem',
+                                marginBottom: '2rem'
+                            }}>
+                                <div style={{ padding: '0 1rem' }}>
+                                    <h4 style={{
+                                        color: '#FF9900',
+                                        fontSize: '1.1rem',
+                                        fontWeight: '600',
+                                        marginBottom: '0.75rem',
+                                        borderBottom: '2px solid #FF9900',
+                                        paddingBottom: '0.5rem'
+                                    }}>Markdown-HTML 双向编辑器</h4>
+                                    <p style={{
+                                        color: '#e5e7eb',
+                                        lineHeight: '1.6',
+                                        fontSize: '0.9rem'
+                                    }}>
+                                        一个功能强大的基于Web的双向编辑器，支持Markdown源码编辑和HTML可视化编辑。
+                                    </p>
+                                </div>
+                                
+                                <div style={{ padding: '0 1rem' }}>
+                                    <h4 style={{
+                                        color: '#FF9900',
+                                        fontSize: '1.1rem',
+                                        fontWeight: '600',
+                                        marginBottom: '0.75rem',
+                                        borderBottom: '2px solid #FF9900',
+                                        paddingBottom: '0.5rem'
+                                    }}>开源项目</h4>
+                                    <div style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '0.5rem'
+                                    }}>
+                                        <a href="https://github.com/DrHuaSH/markdown-html-editor" 
+                                           target="_blank" 
+                                           rel="noopener noreferrer"
+                                           style={{
+                                               color: '#d1d5db',
+                                               textDecoration: 'none',
+                                               fontSize: '0.9rem',
+                                               transition: 'color 0.2s ease'
+                                           }}
+                                           onMouseOver={(e) => e.target.style.color = '#FF9900'}
+                                           onMouseOut={(e) => e.target.style.color = '#d1d5db'}>
+                                            📦 GitHub 仓库
+                                        </a>
+                                        <a href="https://github.com/DrHuaSH/markdown-html-editor/issues" 
+                                           target="_blank" 
+                                           rel="noopener noreferrer"
+                                           style={{
+                                               color: '#d1d5db',
+                                               textDecoration: 'none',
+                                               fontSize: '0.9rem',
+                                               transition: 'color 0.2s ease'
+                                           }}
+                                           onMouseOver={(e) => e.target.style.color = '#FF9900'}
+                                           onMouseOut={(e) => e.target.style.color = '#d1d5db'}>
+                                            🐛 问题反馈
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                <div style={{ padding: '0 1rem' }}>
+                                    <h4 style={{
+                                        color: '#FF9900',
+                                        fontSize: '1.1rem',
+                                        fontWeight: '600',
+                                        marginBottom: '0.75rem',
+                                        borderBottom: '2px solid #FF9900',
+                                        paddingBottom: '0.5rem'
+                                    }}>技术栈</h4>
+                                    <div style={{
+                                        display: 'flex',
+                                        flexWrap: 'wrap',
+                                        gap: '0.5rem'
+                                    }}>
+                                        {['React 18', 'TypeScript', 'Monaco Editor', 'Marked.js'].map((tech, index) => (
+                                            <span key={index} style={{
+                                                background: 'rgba(255, 153, 0, 0.2)',
+                                                color: '#FF9900',
+                                                padding: '0.25rem 0.75rem',
+                                                borderRadius: '1rem',
+                                                fontSize: '0.8rem',
+                                                fontWeight: '500',
+                                                border: '1px solid #FF9900'
+                                            }}>{tech}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '1.5rem 0',
+                                borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                                borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                                flexWrap: 'wrap',
+                                gap: '1rem'
+                            }}>
+                                <div style={{ flex: '1' }}>
+                                    <p style={{ margin: '0.25rem 0', fontSize: '0.9rem' }}>
+                                        © 2026 <strong>DrHuaSH</strong>. 保留所有权利.
+                                    </p>
+                                    <p style={{
+                                        color: '#d1d5db',
+                                        fontSize: '0.8rem',
+                                        margin: '0.25rem 0'
+                                    }}>
+                                        本项目基于 <a href="https://github.com/DrHuaSH/markdown-html-editor/blob/main/LICENSE" 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    style={{ color: '#FF9900', textDecoration: 'none' }}>
+                                            MIT 许可证
+                                        </a> 开源发布
+                                    </p>
+                                </div>
+                                
+                                <div style={{
+                                    textAlign: 'right',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0.5rem',
+                                    alignItems: 'flex-end'
+                                }}>
+                                    <span style={{
+                                        color: '#9ca3af',
+                                        fontSize: '0.8rem'
+                                    }}>
+                                        版本 v2.1.0 | 构建于 2026年1月
+                                    </span>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <span style={{
+                                            padding: '0.25rem 0.75rem',
+                                            borderRadius: '1rem',
+                                            fontSize: '0.75rem',
+                                            fontWeight: '500',
+                                            background: '#10B981',
+                                            color: 'white'
+                                        }}>生产就绪</span>
+                                        <span style={{
+                                            padding: '0.25rem 0.75rem',
+                                            borderRadius: '1rem',
+                                            fontSize: '0.75rem',
+                                            fontWeight: '500',
+                                            background: '#3b82f6',
+                                            color: 'white'
+                                        }}>开源项目</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style={{
+                                marginTop: '1.5rem',
+                                padding: '1rem',
+                                background: 'rgba(0, 0, 0, 0.2)',
+                                borderRadius: '0.5rem',
+                                borderLeft: '4px solid #FF9900'
+                            }}>
+                                <p style={{
+                                    margin: '0.5rem 0',
+                                    fontSize: '0.8rem',
+                                    lineHeight: '1.5',
+                                    color: '#d1d5db'
+                                }}>
+                                    <strong style={{ color: '#FF9900' }}>免责声明：</strong>
+                                    本软件按"原样"提供，不提供任何明示或暗示的保证。使用本软件的风险由用户自行承担。
+                                </p>
+                                <p style={{
+                                    margin: '0.5rem 0',
+                                    fontSize: '0.8rem',
+                                    lineHeight: '1.5',
+                                    color: '#d1d5db'
+                                }}>
+                                    <strong style={{ color: '#FF9900' }}>隐私说明：</strong>
+                                    本应用完全在浏览器本地运行，不会收集、存储或传输任何用户数据到外部服务器。
+                                </p>
+                            </div>
+                        </div>
+                    </footer>
                 </div>
             );
         };
